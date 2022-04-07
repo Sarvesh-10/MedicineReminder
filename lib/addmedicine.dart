@@ -2,6 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'Medicine.dart';
@@ -15,6 +16,9 @@ class AddMeds extends StatefulWidget {
 }
 
 class _AddMedsState extends State<AddMeds> {
+  final _firestore = FirebaseFirestore.instance;
+  final nameController = TextEditingController();
+  final pillAmountController = TextEditingController();
   DateTime setDate = DateTime.now();
   TimeOfDay setTime = TimeOfDay.now();
   DateFormat dateFormat = DateFormat('dd/MM/yy');
@@ -22,6 +26,8 @@ class _AddMedsState extends State<AddMeds> {
   double dropDownwidth = 2;
   double sliderValue = 50;
   double sliderValue2 = 50;
+  Medicine? meds;
+  late SnackBar snackBar;
 
   get onChanged => null;
   String? selectType = 'ml';
@@ -65,9 +71,10 @@ class _AddMedsState extends State<AddMeds> {
                 textAlign: TextAlign.left,
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(15, 5, 15, 5),
               child: TextField(
+                controller: nameController,
                 decoration: InputDecoration(
                     hintText: 'Enter Pill"s name',
                     hintStyle: TextStyle(color: Colors.black),
@@ -88,6 +95,10 @@ class _AddMedsState extends State<AddMeds> {
                           border: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10)))),
+                      controller: pillAmountController,
+                      onChanged: (value) {
+                        meds!.amount = value as int;
+                      },
                     ),
                   ),
                 ),
@@ -105,6 +116,7 @@ class _AddMedsState extends State<AddMeds> {
                     onChanged: (value) {
                       setState(() {
                         selectType = value;
+
                         dropDownwidth = 2;
                         onClickDropDown = Colors.blue;
                       });
@@ -133,7 +145,7 @@ class _AddMedsState extends State<AddMeds> {
                   });
                 },
                 inactiveColor: Color.fromARGB(255, 241, 225, 225),
-                activeColor: Colors.blue,
+                activeColor: const Color(0xff1F51FF),
                 min: 0,
                 max: 100,
               ),
@@ -166,7 +178,7 @@ class _AddMedsState extends State<AddMeds> {
                   });
                 },
                 inactiveColor: Color.fromARGB(255, 241, 225, 225),
-                activeColor: Colors.blue,
+                activeColor: const Color(0xff1F51FF),
                 min: 0,
                 max: 100,
               ),
@@ -200,6 +212,7 @@ class _AddMedsState extends State<AddMeds> {
                       setState(() {
                         setDate = DateTime(selectedDate.year,
                             selectedDate.month, selectedDate.day);
+                        meds?.date = setDate;
                       });
                     }
                   },
@@ -225,7 +238,7 @@ class _AddMedsState extends State<AddMeds> {
                         Icon(
                           Icons.calendar_month,
                           size: 27,
-                          color: Colors.blue,
+                          color: const Color(0xff1F51FF),
                         ),
                       ],
                     ),
@@ -237,6 +250,7 @@ class _AddMedsState extends State<AddMeds> {
                     if (selectedTime != null) {
                       setState(() {
                         setTime = selectedTime;
+                        meds?.time = selectedTime;
                       });
                     }
                   },
@@ -258,7 +272,7 @@ class _AddMedsState extends State<AddMeds> {
                         ),
                         Icon(
                           Icons.alarm,
-                          color: Colors.blue,
+                          color: const Color(0xff1F51FF),
                           size: 27,
                         )
                       ],
@@ -278,7 +292,7 @@ class _AddMedsState extends State<AddMeds> {
                   textAlign: TextAlign.center,
                 ),
                 style: ElevatedButton.styleFrom(
-                    primary: Colors.blue,
+                    primary: const Color(0xff1F51FF),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10))),
               ),
@@ -309,6 +323,32 @@ class _AddMedsState extends State<AddMeds> {
   }
 
   void saveMedicine() {
+    _firestore.collection('Medicines').add({
+      'Date': setDate.toString(),
+      'Time': setTime.toString(),
+      'amount': pillAmountController.text,
+      'freqPerday': sliderValue.toString(),
+      'name': nameController.text,
+      'type': selectType,
+      'weekOrdays': sliderValue2.toString(),
+    });
+    snackBar = SnackBar(
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: const [
+          Text(
+            'Reminder added',
+            style: TextStyle(color: Colors.white, fontSize: 15),
+          ),
+          Icon(
+            Icons.check,
+            color: Colors.white,
+          )
+        ],
+      ),
+      backgroundColor: Colors.green,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
     Navigator.pop(context);
   }
 }
@@ -328,7 +368,7 @@ class ImageContainer extends StatelessWidget {
         width: 150,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: medtype.isSelected ? Colors.blue : Colors.white,
+          color: medtype.isSelected ? const Color(0xff1F51FF) : Colors.white,
         ),
         margin: EdgeInsets.all(10),
         child: Column(
@@ -347,19 +387,5 @@ class ImageContainer extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class DatePickerWidget extends StatefulWidget {
-  const DatePickerWidget({Key? key}) : super(key: key);
-
-  @override
-  State<DatePickerWidget> createState() => _DatePickerWidgetState();
-}
-
-class _DatePickerWidgetState extends State<DatePickerWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }

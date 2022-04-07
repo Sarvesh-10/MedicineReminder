@@ -16,10 +16,10 @@ class Medicine {
   String type;
   int weeksOrDays;
   int freqPerDay;
-  Image pillImage;
+
   String pillImageDesc;
   DateTime date;
   TimeOfDay time;
-  Medicine(this.name, this.amount, this.date, this.freqPerDay, this.pillImage,
+  Medicine(this.name, this.amount, this.date, this.freqPerDay,
       this.pillImageDesc, this.time, this.type, this.weeksOrDays);
 }
