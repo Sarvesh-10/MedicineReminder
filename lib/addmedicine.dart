@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
 
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,20 +17,22 @@ class AddMeds extends StatefulWidget {
   State<AddMeds> createState() => _AddMedsState();
 }
 
-class _AddMedsState extends State<AddMeds> {
+class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
   final _firestore = FirebaseFirestore.instance;
   final nameController = TextEditingController();
   final pillAmountController = TextEditingController();
   DateTime setDate = DateTime.now();
   TimeOfDay setTime = TimeOfDay.now();
+  String medType = '';
   DateFormat dateFormat = DateFormat('dd/MM/yy');
   Color onClickDropDown = Colors.black45;
   double dropDownwidth = 2;
   double sliderValue = 50;
-  double sliderValue2 = 50;
+  double sliderValue2 = 3;
   Medicine? meds;
   late SnackBar snackBar;
-
+  String every_hours = '0';
   get onChanged => null;
   String? selectType = 'ml';
   List<String> list = ['ml', 'mg', 'pills'];
@@ -39,6 +43,15 @@ class _AddMedsState extends State<AddMeds> {
         item,
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController =
+        AnimationController(duration: Duration(seconds: 1), vsync: this);
+    _animationController.forward();
+    _animationController.addListener(() {});
   }
 
   @override
@@ -89,6 +102,7 @@ class _AddMedsState extends State<AddMeds> {
                   child: Container(
                     padding: EdgeInsets.fromLTRB(15, 5, 15, 5),
                     child: TextField(
+                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                           hintText: 'Pills Amount',
                           hintStyle: TextStyle(color: Colors.black),
@@ -137,23 +151,24 @@ class _AddMedsState extends State<AddMeds> {
             Padding(
               padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
               child: Slider(
-                divisions: 10,
+                divisions: 100,
                 value: sliderValue,
-                onChanged: (value) {
+                onChanged: (double value) {
                   setState(() {
                     sliderValue = value;
+                    sliderValue.toInt();
                   });
                 },
                 inactiveColor: Color.fromARGB(255, 241, 225, 225),
                 activeColor: const Color(0xff1F51FF),
-                min: 0,
+                min: 1,
                 max: 100,
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
               child: Text(
-                "$sliderValue weeks",
+                sliderValue.toStringAsFixed(0) + ' days',
                 style: TextStyle(fontSize: 18),
                 textAlign: TextAlign.right,
               ),
@@ -167,30 +182,62 @@ class _AddMedsState extends State<AddMeds> {
               ),
             ),
 
-            Padding(
-              padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
-              child: Slider(
-                divisions: 10,
-                value: sliderValue2,
-                onChanged: (value) {
-                  setState(() {
-                    sliderValue2 = value;
-                  });
-                },
-                inactiveColor: Color.fromARGB(255, 241, 225, 225),
-                activeColor: const Color(0xff1F51FF),
-                min: 0,
-                max: 100,
-              ),
+            Row(
+              children: [
+                Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
+                      child: Slider(
+                        divisions: 5,
+                        value: sliderValue2,
+                        onChanged: (value) {
+                          setState(() {
+                            sliderValue2 = value;
+                          });
+                        },
+                        inactiveColor: Color.fromARGB(255, 241, 225, 225),
+                        activeColor: const Color(0xff1F51FF),
+                        min: 1,
+                        max: 5,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                      child: Text(
+                        sliderValue2.toStringAsFixed(0) + ' doses per day',
+                        style: TextStyle(fontSize: 18),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(10, 2, 10, 2),
+                    margin: EdgeInsets.only(right: 15),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          hintText:
+                              sliderValue2 == 1 ? 'Disabled' : 'Every _ hours',
+                          hintStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)))),
+                      enabled: sliderValue2 == 1 ? false : true,
+                      onChanged: (value) {
+                        setState(() {
+                          every_hours = value;
+                          if (sliderValue2 == 1) every_hours = '0';
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-              child: Text(
-                "$sliderValue2 weeks",
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.right,
-              ),
-            ),
+
             Container(
               height: 120,
               width: double.infinity,
@@ -319,37 +366,88 @@ class _AddMedsState extends State<AddMeds> {
         element.isSelected = false;
       });
       medTypeList[medTypeList.indexOf(type)].isSelected = true;
+      medType = type.name;
     });
   }
 
   void saveMedicine() {
-    _firestore.collection('Medicines').add({
-      'Date': setDate.toString(),
-      'Time': setTime.toString(),
-      'amount': pillAmountController.text,
-      'freqPerday': sliderValue.toString(),
-      'name': nameController.text,
-      'type': selectType,
-      'weekOrdays': sliderValue2.toString(),
-    });
-    snackBar = SnackBar(
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Text(
-            'Reminder added',
-            style: TextStyle(color: Colors.white, fontSize: 15),
-          ),
-          Icon(
-            Icons.check,
-            color: Colors.white,
-          )
-        ],
-      ),
-      backgroundColor: Colors.green,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    Navigator.pop(context);
+    bool correctRepetiveTime = true;
+    DateTime newDate = setDate;
+    TimeOfDay newTime = setTime;
+
+    if (compareTimeOfDay(setTime)) {
+      for (int i = 0; i < sliderValue; i++) {
+        for (int j = 0; j < sliderValue2; j++) {
+          newTime = setTime.replacing(
+              hour: setTime.hour + (int.parse(every_hours) * j));
+          newTime.format(context);
+          print(newTime);
+
+          _firestore.collection('Medicin').add({
+            'Date': dateFormat.format(newDate).toString(),
+            'Time': newTime.format(context).toString(),
+            'amount': pillAmountController.text,
+            'weight': selectType,
+            'days': sliderValue.toString(),
+            'name': nameController.text,
+            'type': medType,
+            'freqPerDay': sliderValue2.toString(),
+          });
+        }
+        newTime = setTime;
+        newDate = setDate.add(Duration(days: 1));
+        dateFormat.format(newDate);
+        print(newDate);
+      }
+
+      snackBar = SnackBar(
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text(
+              'Reminder added',
+              style: TextStyle(color: Colors.white, fontSize: 15),
+            ),
+            Icon(
+              Icons.check,
+              color: Colors.white,
+            )
+          ],
+        ),
+        backgroundColor: Colors.green,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      Navigator.pop(context);
+    } else {
+      SnackBar error = SnackBar(
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text(
+              'Error!! Check your Frequency and hours per day',
+              style: TextStyle(color: Colors.white, fontSize: 15),
+            ),
+            Icon(
+              Icons.check,
+              color: Colors.white,
+            )
+          ],
+        ),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(error);
+    }
+  }
+
+  bool compareTimeOfDay(TimeOfDay newTime) {
+    double _doublenewTime = newTime.hour.toDouble() +
+        (newTime.minute.toDouble() / 60) +
+        double.parse(every_hours) * (sliderValue2 - 1);
+    if (sliderValue2 == 1) return true;
+    if (_doublenewTime > TimeOfDay.hoursPerDay.toDouble()) return false;
+
+    return true;
   }
 }
 

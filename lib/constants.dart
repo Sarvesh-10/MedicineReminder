@@ -5,13 +5,10 @@ import 'package:medicine_reminder_/Medicine.dart';
 import 'package:medicine_reminder_/addmedicine.dart';
 
 List<MedicineType> medTypeList = [
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), true),
+  MedicineType('Capsule', Image.asset('Images/capsules.png'), true),
+  MedicineType('Cream', Image.asset('Images/cream.png'), false),
+  MedicineType('Drops', Image.asset('Images/drops.png'), false),
   MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
-  MedicineType('Pills', Image.asset('Images/icons8-pills-48.png'), false),
+  MedicineType('Syringe', Image.asset('Images/syringe.png'), false),
+  MedicineType('Syrup', Image.asset('Images/syrup.png'), false),
 ];

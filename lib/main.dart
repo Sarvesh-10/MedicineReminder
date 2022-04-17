@@ -32,8 +32,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({Key? key}) : super(key: key);
 
@@ -87,17 +85,30 @@ class _BottomNavBarState extends State<BottomNavBar> {
               this.index = index;
             });
           }),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.medication_outlined),
+        elevation: 9.0,
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
             return const AddMeds();
           }));
         },
-        child: const Icon(Icons.add),
         backgroundColor: const Color(0xff1F51FF),
         foregroundColor: Colors.white,
+        label: const Text(
+          'Add Medicine',
+          style: TextStyle(fontSize: 15, color: Colors.white),
+        ),
       ),
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+}
+
+class CustomPageRoute extends PageRouteBuilder {
+  final Widget child;
+  CustomPageRoute(this.child, {required RoutePageBuilder pageBuilder})
+      : super(pageBuilder: pageBuilder);
+
+      
 }
