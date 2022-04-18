@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
                 for (var meds in medicines) {
                   Map medsInfo = meds.data() as Map;
                   storedDate = medsInfo['Date'];
-                  if (currentDate == storedDate) {
+                  if (storedDate == currentDate) {
                     MedContainer newMed = MedContainer(
                         medType: medsInfo['type'],
                         amount: medsInfo['amount'],

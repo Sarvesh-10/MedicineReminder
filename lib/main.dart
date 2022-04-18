@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:medicine_reminder_/Registration.dart';
 import 'package:medicine_reminder_/addmedicine.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
@@ -13,7 +14,9 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const MyApp());
+  runApp(MaterialApp(
+    home: RegistrationScreen(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -109,6 +112,4 @@ class CustomPageRoute extends PageRouteBuilder {
   final Widget child;
   CustomPageRoute(this.child, {required RoutePageBuilder pageBuilder})
       : super(pageBuilder: pageBuilder);
-
-      
 }
