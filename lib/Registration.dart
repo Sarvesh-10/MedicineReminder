@@ -3,10 +3,13 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:medicine_reminder_/LoginPage.dart';
 import 'package:medicine_reminder_/home.dart';
 import 'package:medicine_reminder_/main.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Logo.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({Key? key}) : super(key: key);
@@ -21,6 +24,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String _password = '';
   bool showSpinner = false;
   final _auth = FirebaseAuth.instance;
+  bool isObscure = true;
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +51,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                   child: TextFormField(
                     onChanged: (value) {
                       _emailAddress = value;
                     },
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value == null) {
+                      if (value == null || value.isEmpty) {
                         return "Email cannot be empty";
                       }
                       return null;
                     },
                     decoration: const InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.email,
+                        color: Color(0xff1F51FF),
+                      ),
                       hintStyle: TextStyle(color: Colors.black),
                       label: Text('Enter your Email'),
                       border: OutlineInputBorder(
@@ -87,66 +95,82 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                       return null;
                     },
+                    obscureText: isObscure,
                     onChanged: (value) {
                       _password = value;
                     },
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintStyle: TextStyle(color: Colors.black),
                       label: Text('Enter your Password'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isObscure = !isObscure;
+                            });
+                          },
+                          icon: isObscure
+                              ? const Icon(Icons.visibility_off)
+                              : Icon(
+                                  Icons.visibility,
+                                  color: isObscure
+                                      ? const Color(0xff1F51FF)
+                                      : Colors.red,
+                                )),
                       hintText: 'Enter your Password',
-                      enabledBorder: OutlineInputBorder(
+                      enabledBorder: const OutlineInputBorder(
                         borderSide: BorderSide(
                             color: Colors.lightBlueAccent, width: 1.0),
                         borderRadius: BorderRadius.all(Radius.circular(32.0)),
                       ),
                     ),
+                    autofillHints: const [AutofillHints.email],
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: MaterialButton(
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20))),
                     elevation: 5,
                     onPressed: () async {
                       final isValid = formKey.currentState!.validate();
-                      setState(() {
-                        showSpinner = true;
-                      });
-                      if (isValid) {
-                        try {
-                          final newUser = _auth.createUserWithEmailAndPassword(
-                              email: _emailAddress, password: _password);
 
-                          if (newUser != null) {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return const MyApp();
-                            }));
-                          }
-                        } on Exception catch (e) {
-                          // TODO
-                        } finally {
-                          showSpinner = false;
-                        }
-                      } else {
+                      if (isValid) {
                         setState(() {
-                          showSpinner = false;
+                          showSpinner = true;
                         });
+                        try {
+                          final newUser =
+                              await _auth.createUserWithEmailAndPassword(
+                                  email: _emailAddress, password: _password);
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          prefs.setString('email', _emailAddress);
+                          Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (context) {
+                            return const MyApp();
+                          }));
+                        } catch (e) {
+                          Fluttertoast.showToast(msg: e.toString());
+                        } finally {
+                          setState(() {
+                            showSpinner = false;
+                          });
+                        }
                       }
                     },
-                    child: Text('Register'),
+                    child: const Text('Register'),
                     minWidth: 350,
                     height: 42,
-                    color: Color(0xff1F51FF),
+                    color: const Color(0xff1F51FF),
                     textColor: Colors.white,
                   ),
                 ),
                 const Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10),
                   child: Text(
                     'OR',
                     style: TextStyle(
@@ -155,29 +179,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-                Text(
+                const Text(
                   'Sign up with',
                   style: TextStyle(color: Colors.black45, fontSize: 20),
                 ),
-                Container(
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Logo(
-                          image: Image.asset('Images/google.png'),
-                        ),
-                        Logo(
-                          image: Image.asset('Images/meta.png'),
-                        ),
-                        Logo(
-                          image: Image.asset('Images/twitter.png'),
-                        )
-                      ]),
-                ),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Logo(
+                    image: Image.asset('Images/google.png'),
+                  ),
+                  Logo(
+                    image: Image.asset('Images/meta.png'),
+                  ),
+                  Logo(
+                    image: Image.asset('Images/twitter.png'),
+                  )
+                ]),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       'Already have an account ?',
                       style: TextStyle(color: Colors.black26, fontSize: 19),
                     ),
@@ -185,7 +205,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(context,
                               MaterialPageRoute(builder: (context) {
-                            return LoginPage();
+                            return const LoginPage();
                           }));
                         },
                         child: const Text(
@@ -229,22 +249,3 @@ class CurvedButton extends StatelessWidget {
   }
 }
 
-class Logo extends StatelessWidget {
-  final image;
-  Logo({this.image});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: () {},
-        child: Container(
-          padding: EdgeInsets.all(10),
-          decoration: const BoxDecoration(shape: BoxShape.circle),
-          child: image,
-        ),
-      ),
-    );
-  }
-}

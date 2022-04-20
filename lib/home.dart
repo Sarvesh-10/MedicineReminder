@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+
+final _auth = FirebaseAuth.instance;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,6 +20,20 @@ class _HomePageState extends State<HomePage> {
   DateFormat dateFormat = DateFormat('dd/MM/yy');
   late String currentDate = dateFormat.format(DateTime.now());
   late String storedDate;
+  late User loggedInUser;
+  void getCurrentUser() {
+    User? current = _auth.currentUser;
+    if (current != null) {
+      loggedInUser = current;
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCurrentUser();
+  }
 
   final _firestore = FirebaseFirestore.instance;
   @override
@@ -28,9 +45,9 @@ class _HomePageState extends State<HomePage> {
           ClipPath(
             clipper: CustomClipPath(),
             child: Container(
-              child: const Center(
+              child: Center(
                   child: Text(
-                "Some Text",
+                loggedInUser.email.toString(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 30, color: Colors.white),
               )),

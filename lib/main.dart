@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,15 +9,18 @@ import 'package:medicine_reminder_/addmedicine.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:medicine_reminder_/home.dart';
+import 'package:medicine_reminder_/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  var email = prefs.get('email');
   runApp(MaterialApp(
-    home: RegistrationScreen(),
+    home: email == null ? const RegistrationScreen() : const MyApp(),
   ));
 }
 
@@ -49,7 +54,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     const HomePage(),
     const HomePage(),
     const HomePage(),
-    const HomePage(),
+    const Settings(),
   ];
   @override
   Widget build(BuildContext context) {

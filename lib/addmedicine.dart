@@ -110,9 +110,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10)))),
                       controller: pillAmountController,
-                      onChanged: (value) {
-                        meds!.amount = value as int;
-                      },
+                      
                     ),
                   ),
                 ),
@@ -395,7 +393,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
           });
         }
         newTime = setTime;
-        newDate = setDate.add(Duration(days: 1));
+        newDate = newDate.add(Duration(days: 1));
         dateFormat.format(newDate);
         print(newDate);
       }
