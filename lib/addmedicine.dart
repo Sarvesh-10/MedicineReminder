@@ -1,7 +1,9 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, prefer_const_constructors_in_immutables, use_key_in_widget_constructors
 
 import 'dart:developer';
-
+import 'Notificationapi.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,6 +26,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
   final pillAmountController = TextEditingController();
   DateTime setDate = DateTime.now();
   TimeOfDay setTime = TimeOfDay.now();
+  int notifyId = 0;
   String medType = '';
   DateFormat dateFormat = DateFormat('dd/MM/yy');
   Color onClickDropDown = Colors.black45;
@@ -36,6 +39,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
   get onChanged => null;
   String? selectType = 'ml';
   List<String> list = ['ml', 'mg', 'pills'];
+
   DropdownMenuItem<String> buildMenuItem(String item) {
     return DropdownMenuItem(
       value: item,
@@ -52,6 +56,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
         AnimationController(duration: Duration(seconds: 1), vsync: this);
     _animationController.forward();
     _animationController.addListener(() {});
+    Notificationapi.init();
   }
 
   @override
@@ -110,7 +115,6 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10)))),
                       controller: pillAmountController,
-                      
                     ),
                   ),
                 ),
@@ -376,10 +380,11 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
     if (compareTimeOfDay(setTime)) {
       for (int i = 0; i < sliderValue; i++) {
         for (int j = 0; j < sliderValue2; j++) {
+          tz.initializeTimeZones();
+          tz.setLocalLocation(tz.getLocation('Europe/Warsaw'));
           newTime = setTime.replacing(
               hour: setTime.hour + (int.parse(every_hours) * j));
           newTime.format(context);
-          print(newTime);
 
           _firestore.collection('Medicin').add({
             'Date': dateFormat.format(newDate).toString(),
@@ -391,11 +396,18 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
             'type': medType,
             'freqPerDay': sliderValue2.toString(),
           });
+
+          Notificationapi.showScheduledNotification(
+            scheduledDate: DateTime(newDate.year, newDate.month, newDate.day,
+                newTime.hour, newTime.minute),
+            payload: nameController.text.toString(),
+            id: notifyId++,
+            title: 'Medicine Time',
+          );
         }
         newTime = setTime;
         newDate = newDate.add(Duration(days: 1));
         dateFormat.format(newDate);
-        print(newDate);
       }
 
       snackBar = SnackBar(
@@ -415,6 +427,7 @@ class _AddMedsState extends State<AddMeds> with SingleTickerProviderStateMixin {
         backgroundColor: Colors.green,
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
       Navigator.pop(context);
     } else {
       SnackBar error = SnackBar(

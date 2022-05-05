@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                 loggedInUser.email.toString(),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 30, color: Colors.white),
+                style: const TextStyle(fontSize: 30, color: Colors.white),
               )),
               color: const Color(0xffFF5F1F),
               height: 350,
@@ -84,9 +84,7 @@ class _HomePageState extends State<HomePage> {
                 ));
               }
 
-              return const CircularProgressIndicator(
-                color: Color(0xffFF5F1F),
-              );
+              return Text('');
             },
           ),
         ]),
